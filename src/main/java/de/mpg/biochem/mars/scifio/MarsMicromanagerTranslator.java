@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.mpg.biochem.mars.metadata;
+package de.mpg.biochem.mars.scifio;
 
 import io.scif.ome.translators.*;
 
@@ -45,8 +45,8 @@ import org.scijava.Priority;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import de.mpg.biochem.mars.metadata.MarsMicromanagerFormat.Metadata;
-import de.mpg.biochem.mars.metadata.MarsMicromanagerFormat.Position;
+import de.mpg.biochem.mars.scifio.MarsMicromanagerFormat.Metadata;
+import de.mpg.biochem.mars.scifio.MarsMicromanagerFormat.Position;
 import loci.formats.ome.OMEXMLMetadata;
 import ome.units.UNITS;
 import ome.units.quantity.ElectricPotential;

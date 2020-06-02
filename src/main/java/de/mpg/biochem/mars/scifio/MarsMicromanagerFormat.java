@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.mpg.biochem.mars.metadata;
+package de.mpg.biochem.mars.scifio;
 
 import io.scif.formats.*;
 
