@@ -183,7 +183,6 @@ public class MarsMicromanagerTranslator {
 						store.setPlaneTheZ(p.getTheZ(meta, i, q), i, q);
 						store.setPlaneTheT(p.getTheT(meta, i, q), i, q);
 						
-						//DROP-IN
 						HashMap<String, String> planeMetaTable = (HashMap<String, String>)meta.getTable().get(p.getPlaneMapKey(meta, i, q));
 						
 						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
@@ -193,7 +192,12 @@ public class MarsMicromanagerTranslator {
 						store.setMapAnnotationValue(planeParameterList, q);
 						store.setMapAnnotationID("MMAllFileKey-" + i + "-" + q, q);
 						store.setPlaneAnnotationRef("MMAllFileKey-" + i + "-" + q, i, q, 0);
-						//
+					} else {
+						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>(); 
+						
+						store.setMapAnnotationValue(planeParameterList, q);
+						store.setMapAnnotationID("MMAllFileKey-" + i + "-" + q, q);
+						store.setPlaneAnnotationRef("MMAllFileKey-" + i + "-" + q, i, q, 0);
 					}
 				}
 
