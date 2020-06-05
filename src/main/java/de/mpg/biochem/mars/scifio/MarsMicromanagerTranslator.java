@@ -152,11 +152,7 @@ public class MarsMicromanagerTranslator {
 				}
 				else {
 					log().warn("Expected positive value for PhysicalSizeX; got " +
-						p.pixelSize + ". Setting to 1 pixel");
-					store.setPixelsPhysicalSizeX(//
-							new Length(1, UNITS.PIXEL), i);
-						store.setPixelsPhysicalSizeY(//
-							new Length(1, UNITS.PIXEL), i);
+						p.pixelSize + ".");
 				}
 				if (p.sliceThickness != null && p.sliceThickness > 0) {
 					store.setPixelsPhysicalSizeZ(//
