@@ -153,18 +153,18 @@ public class MarsMicromanagerTranslator {
 					store.setPixelsPhysicalSizeY(//
 						new Length(p.pixelSize, UNITS.MICROMETER), i);
 				}
-				else {
-					log().warn("Expected positive value for PhysicalSizeX; got " +
-						p.pixelSize + ".");
-				}
+				//else {
+				//	log().warn("Expected positive value for PhysicalSizeX; got " +
+				//		p.pixelSize + ".");
+				//}
 				if (p.sliceThickness != null && p.sliceThickness > 0) {
 					store.setPixelsPhysicalSizeZ(//
 						new Length(p.sliceThickness, UNITS.MICROMETER), i);
 				}
-				else {
-					log().warn("Expected positive value for PhysicalSizeZ; got " +
-						p.sliceThickness);
-				}
+				//else {
+				//	log().warn("Expected positive value for PhysicalSizeZ; got " +
+				//		p.sliceThickness);
+				//}
 
 				int nextStamp = 0;
 				for (int q = 0; q < meta.get(i).getPlaneCount(); q++) {
