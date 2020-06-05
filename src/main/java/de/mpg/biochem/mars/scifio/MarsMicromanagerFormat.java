@@ -480,7 +480,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					if (value.endsWith(",")) value =
 						value.substring(0, value.length() - 1);
 					meta.getTable().put(key, value);
-					if (key.equals("Channels")) {
+					if (key.equals("UUID")) {
+						p.UUID = value;
+					} else if (key.equals("Channels")) {
 						ms.setAxisLength(Axes.CHANNEL, Integer.parseInt(value));
 					}
 					else if (key.equals("ChNames")) {
@@ -572,9 +574,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						slice[0] = theT;
 					}
 					
-					// DROP-IN
 					HashMap<String, String> planeMetaTable = new HashMap<String, String>();
-					//
 					
 					while (!token.startsWith("}") || nestedCount > 0) {
 
@@ -616,9 +616,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 
 						meta.getTable().put(key, value);
 						
-						// DROP-IN
 						planeMetaTable.put(key, value);
-						//
 
 						if (key.equals("Exposure-ms")) {
 							final double t = Double.parseDouble(value);
@@ -651,10 +649,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							p.cameraMode = value;
 						}
 						else if (key.equals(p.cameraRef + "-Exposure")) {
-							// DROP-IN
 							final double t = Double.parseDouble(value);
 							p.exposureTime = new Double(t / 1000);
-							//
 						}
 						else if (key.startsWith("DAC-") && key.endsWith("-Volts")) {
 							p.voltage.add(new Double(value));
@@ -669,9 +665,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						token = st.nextToken().trim();
 					}
 					
-					// DROP-IN
 					meta.getTable().put("MMAllFileKey-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
-					//
 				}
 			}
 
@@ -962,6 +956,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		public String cameraRef;
 
 		public String cameraMode;
+		
+		public String UUID;
 
 		public String getFile(final Metadata meta, final int imageIndex,
 			final long planeIndex)

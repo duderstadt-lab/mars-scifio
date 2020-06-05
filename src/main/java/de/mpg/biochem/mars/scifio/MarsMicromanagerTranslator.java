@@ -128,6 +128,9 @@ public class MarsMicromanagerTranslator {
 					if (date != null)
 						store.setImageAcquisitionDate(new Timestamp(date), i);
 				}
+				
+				if (p.UUID != null)
+					store.setUUID(p.UUID);
 
 				if (positions.size() > 1) {
 					final Location parent = //
