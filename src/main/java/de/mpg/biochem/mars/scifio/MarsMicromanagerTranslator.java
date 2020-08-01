@@ -33,15 +33,17 @@ import io.scif.ome.translators.*;
 
 import io.scif.FormatException;
 import io.scif.common.DateTools;
-import io.scif.io.Location;
 import io.scif.ome.OMEMetadata;
 import io.scif.ome.services.OMEMetadataService;
+import org.scijava.io.location.Location;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.List;
 
 import org.scijava.Priority;
+import org.scijava.io.handle.DataHandleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -77,7 +79,7 @@ public class MarsMicromanagerTranslator {
 	 * 
 	 * @author Mark Hiner
 	 */
-	@Plugin(type = FromOMETranslator.class, priority = Priority.HIGH_PRIORITY)
+	@Plugin(type = FromOMETranslator.class, priority = Priority.HIGH)
 	public static class MarsMicromanagerOMETranslator extends
 		ToOMETranslator<MarsMicromanagerFormat.Metadata>
 	{
@@ -86,6 +88,9 @@ public class MarsMicromanagerTranslator {
 
 		@Parameter
 		private OMEMetadataService omexmlMetadataService;
+
+		@Parameter
+		private DataHandleService dataHandleService;
 
 		// -- Translator API --
 
@@ -106,19 +111,19 @@ public class MarsMicromanagerTranslator {
 			try {
 				populateMetadata(source, dest.getRoot());
 			}
-			catch (final FormatException e) {
+			catch (final FormatException | IOException e) {
 				log().error(
 					"Error populating Metadata store with Micromanager metadata", e);
 			}
 		}
 
 		private void populateMetadata(final Metadata meta,
-			final OMEXMLMetadata store) throws FormatException
+			final OMEXMLMetadata store) throws FormatException, IOException
 		{
 			final String instrumentID = //
 				omexmlMetadataService.createLSID("Instrument", 0);
 			store.setInstrumentID(instrumentID, 0);
-			final Vector<Position> positions = meta.getPositions();
+			final List<Position> positions = meta.getPositions();
 			
 			for (int i = 0; i < positions.size(); i++) {
 				final Position p = positions.get(i);
@@ -133,8 +138,7 @@ public class MarsMicromanagerTranslator {
 					store.setUUID(p.UUID);
 
 				if (positions.size() > 1) {
-					final Location parent = //
-						new Location(getContext(), p.metadataFile).getParentFile();
+					final Location parent = p.metadataFile.parent();
 					store.setImageName(parent.getName(), i);
 				}
 
@@ -168,11 +172,11 @@ public class MarsMicromanagerTranslator {
 
 				int nextStamp = 0;
 				for (int q = 0; q < meta.get(i).getPlaneCount(); q++) {
-					
 					store.setPlaneExposureTime(new Time(p.exposureTime, UNITS.SECOND), i,
 						q);
-					final String tiff = positions.get(i).getFile(meta, i, q);
-					if (tiff != null && new Location(getContext(), tiff).exists() &&
+
+					final Location tiff = positions.get(i).getLocation(meta, i, q);
+					if (tiff != null && dataHandleService.exists(tiff) &&
 						nextStamp < p.timestamps.length)
 					{
 						store.setPlaneDeltaT(new Time(p.timestamps[nextStamp++],
