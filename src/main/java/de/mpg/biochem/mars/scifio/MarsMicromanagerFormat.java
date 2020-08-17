@@ -589,7 +589,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					if (firstKeyFrame && prefService.getBoolean(MarsMicromanagerFormat.class, "CheckZvsTIME", true) &&  ms.getAxisLength(Axes.TIME) < ms.getAxisLength(Axes.Z)) {
 						log().info("Z > T and check is turned on. Swapping Z and T!");
 						
-						//Z is largers than TIME. Let's swap them!!
+						//Z is larger than TIME. Let's swap them!!
 						long frames = ms.getAxisLength(Axes.Z);
 						long sizeZ = ms.getAxisLength(Axes.TIME);
 						
@@ -812,7 +812,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						p.tiffs.add(p.metadataFile.sibling(filename.toString()));
 						filename.delete(0, filename.length());
 					}
-				}
+				} 
 			}
 		}
 
@@ -904,10 +904,18 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			final byte[] buf = plane.getBytes();
 			FormatTools.checkPlaneForReading(meta, imageIndex, planeIndex, buf.length,
 				bounds);
-
-			if (setupReader(imageIndex)) {
+			
+			final Location file =
+					meta.getPositions().get(imageIndex).getLocation(meta, imageIndex,
+						planeIndex);
+			
+			if (file != null && dataHandleService.supports(file) &&
+					dataHandleService.exists(file)) {
+				tiffReader.setSource(file, config);
 				return tiffReader.openPlane(imageIndex, 0, plane, bounds);
 			}
+			log().warn("File for image #" + imageIndex + " (" + file +
+					") is missing or cannot be opened.");
 			return plane;
 		}
 
@@ -1025,6 +1033,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		public Location getLocation(final Metadata meta, final int imageIndex,
 				final long planeIndex)
 			{
+			
 				final long[] zct = FormatTools.rasterToPosition(imageIndex, planeIndex,
 					meta, Index.expectedAxes);
 
