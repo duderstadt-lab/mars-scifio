@@ -685,7 +685,11 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							p.detectorModel = value;
 						}
 						else if (key.equals(p.cameraRef + "-Gain")) {
-							p.gain = (int) Double.parseDouble(value);
+							try {
+								p.gain = (int) Double.parseDouble(value);
+							} catch (NumberFormatException e) {
+								p.gain = -1;
+							}
 						}
 						else if (key.equals(p.cameraRef + "-Name")) {
 							p.detectorManufacturer = value;
