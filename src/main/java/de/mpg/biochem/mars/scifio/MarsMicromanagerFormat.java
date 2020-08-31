@@ -918,8 +918,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 				tiffReader.setSource(file, config);
 				return tiffReader.openPlane(imageIndex, 0, plane, bounds);
 			}
-			log().warn("File for image #" + imageIndex + " (" + file +
-					") is missing or cannot be opened.");
+			//log().warn("File for image #" + imageIndex + " (" + file +
+			//		") is missing or cannot be opened.");
 			return plane;
 		}
 
