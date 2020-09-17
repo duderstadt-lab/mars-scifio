@@ -14,7 +14,7 @@
 	<version>0.0.1-alpha-2-SNAPSHOT</version>
 
 	<name>mars-scifio</name>
-	<description>SCIFIO adapted Micromanager format and translator.</description>
+	<description>SCIFIO adapted Mars Micromanager format and translator.</description>
 	<url>http://biochem.mpg.de/duderstadt/</url>
 	<inceptionYear>2020</inceptionYear>
 	<organization>
@@ -23,7 +23,7 @@
 	</organization>
 	<licenses>
 		<license>
-			<name>BSD-2</name>
+			<name>bsd_2</name>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -70,7 +70,7 @@
 	</issueManagement>
 	<ciManagement>
 		<system>Travis CI</system>
-		<url>https://travis-ci.com/duderstadt-lab/mars-core</url>
+		<url>https://travis-ci.com/duderstadt-lab/mars-scifio</url>
 	</ciManagement>
 
 	<properties>
