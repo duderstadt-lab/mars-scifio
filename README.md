@@ -1,4 +1,4 @@
-[![](https://travis-ci.com/duderstadt-lab/mars-scifio)
+[![](https://travis-ci.com/duderstadt-lab/mars-scifio.svg?branch=master)](https://travis-ci.com/duderstadt-lab/mars-scifio)
 
 **Mars** - **M**olecule **AR**chive **S**uite - A framework for storage and reproducible processing of single-molecule datasets.
 
