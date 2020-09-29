@@ -143,7 +143,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		public void close(final boolean fileOnly) throws IOException {
 			super.close(fileOnly);
 			//if (!fileOnly) {
-			//	positions = null;
+			//	 s = null;
 			//}
 		}
 
@@ -582,6 +582,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							default:
 								throw new FormatException("Unknown type: " + type);
 						}
+					}
+					else if (key.equals("PositionIndex")) {
+						p.positionIndex = Integer.parseInt(value);
 					}
 				}
 
@@ -1025,6 +1028,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		public String binning, detectorID, detectorModel, detectorManufacturer;
 
 		public double temperature;
+		
+		public int positionIndex;
 
 		public List<Double> voltage;
 

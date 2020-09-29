@@ -169,6 +169,12 @@ public class MarsMicromanagerTranslator {
 				//	log().warn("Expected positive value for PhysicalSizeZ; got " +
 				//		p.sliceThickness);
 				//}
+				
+				//For some reason setImageID is squashed by scifio
+				//so for now just add actual position index number
+				//as annotation.
+				store.setDoubleAnnotationValue((double)p.positionIndex, 0);
+				store.setDoubleAnnotationID("ImageID", 0);
 
 				int nextStamp = 0;
 				for (int q = 0; q < meta.get(i).getPlaneCount(); q++) {
