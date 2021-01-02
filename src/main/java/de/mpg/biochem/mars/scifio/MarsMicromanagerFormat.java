@@ -74,6 +74,9 @@ import org.scijava.prefs.PrefService;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * MicromanagerReader is the file format reader for Micro-Manager files.
  *
@@ -237,9 +240,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			final int blockSize = 1048576;
 
 			final long length = handle.length();
-			final String data = handle.readString((int) Math.min(blockSize, length));
+			final String data = handle.readString((int) Math.min(blockSize, length));	
 			return length > 0 && (data.contains("Micro-Manager") || data.contains(
-				"micromanager"));
+					"micromanager") || data.contains("MicroManagerVersion"));
 		}
 	}
 
@@ -277,7 +280,15 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 				final Position p = new Position();
 				//p.metadataFile = "Position #" + (pos + 1);
 				positions.add(p);
-				parsePosition(jsonData[pos], source, pos);
+				
+				int[] version = getMicroManagerVersion(jsonData[pos]);
+	        	if (version[0] == 1 && version[1] >= 4) {
+	        		parsePositionMV1(jsonData[pos], source, pos);
+					buildTIFFListMV1(source, pos);
+	        	} else if (version[0] == 2) {
+	        		parsePositionMV2(jsonData[pos], source, pos);
+					buildTIFFListMV2(source, pos);
+	        	}
 			}
 			
 			translatorService.translate(source, dest, true);
@@ -393,12 +404,32 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						.getURI() + " is too large to be parsed!");
 				}
 				final String metaData = handle.readString((int) handle.length());
-				parsePosition(metaData, meta, posIndex);
-				buildTIFFList(meta, posIndex);
+
+				int[] version = getMicroManagerVersion(metaData);
+	        	if (version[0] == 1 && version[1] >= 4) {
+	        		parsePositionMV1(metaData, meta, posIndex);
+					buildTIFFListMV1(meta, posIndex);
+	        	} else if (version[0] == 2) {
+	        		parsePositionMV2(metaData, meta, posIndex);
+					buildTIFFListMV2(meta, posIndex);
+	        	}
 			}
 		}
+		
+		private int[] getMicroManagerVersion(String metaData) {
+			int[] version = new int[2];
+			int startIndex = metaData.indexOf("MicroManagerVersion");
+			int endIndex = metaData.indexOf(',', startIndex);
+			Pattern p = Pattern.compile("\\d+");
+	        Matcher m = p.matcher(metaData.substring(startIndex, endIndex));
+	        m.find();
+        	version[0] = Integer.valueOf(m.group());
+        	m.find();
+        	version[1] = Integer.valueOf(m.group());
+			return version;
+		}
 
-		private void buildTIFFList(final Metadata meta, final int posIndex)
+		private void buildTIFFListMV1(final Metadata meta, final int posIndex)
 				throws FormatException
 			{
 				try {
@@ -412,8 +443,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					p.tiffs = new ArrayList<>();
 
 					// build list of TIFF files
-
-					buildTIFFList(meta, posIndex, p.baseTiff);
+					buildTIFFListMV1(meta, posIndex, p.baseTiff);
 					// build list of TIFF files
 					//buildTIFFList(meta, posIndex, parent + File.separator + p.baseTiff);
 					
@@ -457,31 +487,76 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						"Encountered error when trying to find TIFF files.", e);
 				}
 		}
+		
+		private void buildTIFFListMV2(final Metadata meta, final int posIndex)
+				throws FormatException
+			{
+				try {
+					final Position p = meta.getPositions().get(posIndex);
+					final ImageMetadata ms = meta.get(posIndex);
+					final BrowsableLocation parent = p.metadataFile.parent();
 
-		private void parsePosition(final String jsonData, final Metadata meta,
+					log().info("Finding image file names");
+
+					// find the name of a TIFF file
+					p.tiffs = new ArrayList<>();
+
+					buildTIFFListMV2(meta, posIndex, p.metadataFile.sibling("img"));
+					// build list of TIFF files
+					//buildTIFFList(meta, posIndex, parent + File.separator + p.baseTiff);
+					
+					if (p.tiffs.size() == 0) {
+						log().info("Failed to generate tif file names");
+					}
+					/*
+					if (p.tiffs.isEmpty()) {
+						final List<String> uniqueZ = new ArrayList<>();
+						final List<String> uniqueC = new ArrayList<>();
+						final List<String> uniqueT = new ArrayList<>();
+
+						final Set<BrowsableLocation> fSet = parent.children();
+						final Location[] files = fSet.toArray(new Location[fSet.size()]);
+						Arrays.sort(files);
+						for (final Location file : files) {
+							final String name = file.getName();
+							if (FormatTools.checkSuffix(name, "tif") || FormatTools.checkSuffix(
+								name, "tiff"))
+							{
+								final String[] blocks = name.split("_");
+								if (!uniqueT.contains(blocks[3])) uniqueT.add(blocks[3]);
+								if (!uniqueC.contains(blocks[1])) uniqueC.add(blocks[1]);
+								if (!uniqueZ.contains(blocks[4])) uniqueZ.add(blocks[4]);
+
+								p.tiffs.add(file);
+							}
+						}
+
+						ms.setAxisLength(Axes.Z, uniqueZ.size());
+						ms.setAxisLength(Axes.CHANNEL, uniqueC.size());
+						ms.setAxisLength(Axes.TIME, uniqueT.size());
+
+						if (p.tiffs.isEmpty()) {
+							throw new FormatException("Could not find TIFF files.");
+						}
+					}
+					*/
+				}
+				catch (final IOException e) {
+					throw new FormatException(
+						"Encountered error when trying to find TIFF files.", e);
+				}
+		}
+
+		private void parsePositionMV1(final String jsonData, final Metadata meta,
 				final int posIndex) throws IOException, FormatException
 			{
 				final Position p = meta.getPositions().get(posIndex);
 				final ImageMetadata ms = meta.get(posIndex);
 				final BrowsableLocation metadataFile = p.metadataFile;
-
-			// now parse the rest of the metadata
-
-			// metadata.txt looks something like this:
-			//
-			// {
-			// "Section Name": {
-			// "Key": "Value",
-			// "Array key": [
-			// first array value, second array value
-			// ]
-			// }
-			//
-			// }
 			
 			boolean firstKeyFrame = true;
 
-			log().info("Populating metadata");
+			log().info("Populating metadata - Micromanager 1.4");
 
 			final List<Double> stamps = new ArrayList<>();
 			p.voltage = new ArrayList<>();
@@ -561,6 +636,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						p.locationMap.put(new Index(slice), file);
 						if (p.baseTiff == null) {
 							p.baseTiff = file;
+							System.out.println("p.baseTiff " + p.baseTiff);
 						}
 					}
 					else if (key.equals("Width")) {
@@ -721,7 +797,300 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						token = st.nextToken().trim();
 					}
 					
-					meta.getTable().put("MMAllFileKey-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
+					meta.getTable().put("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
+				}
+			}
+
+			p.timestamps = stamps.toArray(new Double[stamps.size()]);
+			Arrays.sort(p.timestamps);
+
+			// look for the optional companion XML file
+
+			p.xmlFile = p.metadataFile.sibling(XML);
+			if (dataHandleService.exists(p.xmlFile)) {
+				parseXMLFile(meta, posIndex);
+			}
+		}
+		
+		private void parsePositionMV2(final String jsonData, final Metadata meta,
+				final int posIndex) throws IOException, FormatException
+			{
+			final Position p = meta.getPositions().get(posIndex);
+			final ImageMetadata ms = meta.get(posIndex);
+			final BrowsableLocation metadataFile = p.metadataFile;
+
+			log().info("Populating metadata - Micromanager 2.0");
+
+			final List<Double> stamps = new ArrayList<>();
+			p.voltage = new ArrayList<>();
+
+			final StringTokenizer st = new StringTokenizer(jsonData, "\n");
+			final int[] slice = new int[3];
+			while (st.hasMoreTokens()) {
+				String token = st.nextToken().trim();
+				final boolean open = token.contains("[");
+				boolean closed = token.contains("]");
+				if (open ||
+					(!open && !closed && !token.equals("{") && !token.startsWith("}")))
+				{
+					final int quote = token.indexOf("\"") + 1;
+					final String key = token.substring(quote, token.indexOf("\"", quote));
+					String value = null;
+
+					if (open == closed) {
+						value = token.substring(token.indexOf(":") + 1);
+					}
+					else if (!closed) {
+						final StringBuilder valueBuffer = new StringBuilder();
+						while (!closed) {
+							token = st.nextToken();
+							closed = token.contains("]");
+							valueBuffer.append(token);
+						}
+						value = valueBuffer.toString();
+						value = value.replaceAll("\n", "");
+					}
+					if (value == null) continue;
+
+					final int startIndex = value.indexOf("[");
+					int endIndex = value.indexOf("]");
+					if (endIndex == -1) endIndex = value.length();
+
+					value = value.substring(startIndex + 1, endIndex).trim();
+					if (value.length() == 0) {
+						continue;
+					}
+					//if (value.length() > 1)
+					//	value = value.substring(0, value.length() - 1);
+					value = value.replaceAll("\"", "");
+					if (value.endsWith(",")) value =
+						value.substring(0, value.length() - 1);
+					meta.getTable().put(key, value);
+					
+					if (key.equals("UUID")) {
+						p.UUID = value;
+					} else if (key.equals("Channels")) {
+						ms.setAxisLength(Axes.CHANNEL, Integer.parseInt(value));
+					}
+					else if (key.equals("ChNames")) {
+						p.channels = value.split(",");
+						for (int q = 0; q < p.channels.length; q++) {
+							p.channels[q] = p.channels[q].replaceAll("\"", "").trim();
+						}
+					}
+					else if (key.equals("Frames")) {
+						ms.setAxisLength(Axes.TIME, Integer.parseInt(value));
+					}
+					else if (key.equals("Slices")) {
+						ms.setAxisLength(Axes.Z, Integer.parseInt(value));
+					}
+					else if (key.equals("PixelSize_um")) {
+						p.pixelSize = new Double(value);
+					}
+					else if (key.equals("z-step_um")) {
+						p.sliceThickness = new Double(value);
+					}
+					else if (key.equals("Time")) {
+						p.time = value;
+					}
+					else if (key.equals("Comment")) {
+						p.comment = value;
+					}
+					else if (key.equals("FileName")) {
+						final Location file = metadataFile.sibling(value);
+						p.locationMap.put(new Index(slice), file);
+						if (p.baseTiff == null) {
+							p.baseTiff = file;
+						}
+					}
+					else if (key.equals("Width") && Integer.parseInt(value) > 0) {
+						ms.setAxisLength(Axes.X, Integer.parseInt(value));
+					}
+					else if (key.equals("Height") && Integer.parseInt(value) > 0) {
+						ms.setAxisLength(Axes.Y, Integer.parseInt(value));
+					}
+					else if (key.equals("IJType")) {
+						final int type = Integer.parseInt(value);
+
+						switch (type) {
+							case 0:
+								ms.setPixelType(FormatTools.UINT8);
+								break;
+							case 1:
+								ms.setPixelType(FormatTools.UINT16);
+								break;
+							default:
+								throw new FormatException("Unknown type: " + type);
+						}
+					}
+					else if (key.equals("PositionIndex")) {
+						p.positionIndex = Integer.parseInt(value);
+					}
+					else if (key.equals("IntendedDimensions")) {
+						while (!st.nextToken().trim().equals("},")) { }
+					}
+					else if (key.equals("UserData")) {
+						int insideObjects = 1;
+						while (insideObjects > 0) {
+							String str = st.nextToken().trim();
+							
+							if (str.endsWith("{")) {
+								insideObjects++;
+							}
+							
+							if (str.contains("\"Width\"") || str.contains("\"Height\"")) {
+								String propVal = st.nextToken().trim();
+								propVal = propVal.substring(propVal.indexOf(":") + 1).trim();
+								//if (propVal.length() > 1)
+								//	propVal = propVal.substring(0, propVal.length() - 1);
+								propVal = propVal.replaceAll("\"", "");
+								if (propVal.endsWith(",")) propVal =
+									propVal.substring(0, propVal.length() - 1);
+								
+								if (str.contains("\"Width\"") && Integer.parseInt(propVal) > 0) {
+									ms.setAxisLength(Axes.X, Integer.parseInt(propVal));
+								} else if (str.contains("\"Height\"") && Integer.parseInt(propVal) > 0) {
+									ms.setAxisLength(Axes.Y, Integer.parseInt(propVal));
+								}
+							}
+							
+							if (str.startsWith("}")) {
+								insideObjects--;
+							}
+						}
+					}
+				}
+				
+				if (token.startsWith("\"Coords-") || token.startsWith("\"Metadata-")) {
+
+					//slice[2] = time
+					//slice[1] = channel
+					//slice[0] = z
+					
+					String imgFileString = token.substring(token.indexOf("img_channel"));
+					
+					int channelIndex = imgFileString.indexOf("_channel") + 8;
+					int nextUnderscore = imgFileString.indexOf("_", channelIndex);
+					slice[1] = Integer.parseInt(imgFileString.substring(channelIndex, nextUnderscore));
+					
+					int timeIndex = imgFileString.indexOf("_time") + 5;
+					nextUnderscore = imgFileString.indexOf("_", timeIndex);
+					slice[2] = Integer.parseInt(imgFileString.substring(timeIndex, nextUnderscore));
+					
+					int zIndex = imgFileString.indexOf("_z") + 2;
+					nextUnderscore = imgFileString.indexOf(".", zIndex);
+					slice[0] = Integer.parseInt(imgFileString.substring(zIndex, nextUnderscore));
+
+					token = st.nextToken().trim();
+					String key = "", value = "";
+					boolean valueArray = false;
+					int nestedCount = 0;
+					
+					HashMap<String, String> planeMetaTable = new HashMap<String, String>();
+					
+					while (!token.startsWith("}") || nestedCount > 0) {
+
+						if (token.trim().endsWith("{")) {
+							nestedCount++;
+							token = st.nextToken().trim();
+							continue;
+						}
+						else if (token.trim().startsWith("}")) {
+							nestedCount--;
+							token = st.nextToken().trim();
+							continue;
+						}
+
+						if (valueArray) {
+							if (token.trim().equals("],")) {
+								valueArray = false;
+							}
+							else {
+								value += token.trim().replaceAll("\"", "");
+								token = st.nextToken().trim();
+								continue;
+							}
+						}
+						else {
+							final int colon = token.indexOf(":");
+							key = token.substring(1, colon).trim();
+							value = token.substring(colon + 1, token.length()).trim();
+							if (value.endsWith(",")) value =
+									value.substring(0, value.length() - 1);
+
+							key = key.replaceAll("\"", "");
+							value = value.replaceAll("\"", "");
+
+							if (token.trim().endsWith("[")) {
+								valueArray = true;
+								token = st.nextToken().trim();
+								continue;
+							}
+						}
+
+						meta.getTable().put(key, value);
+						
+						planeMetaTable.put(key, value);
+
+						if (key.equals("Exposure-ms")) {
+							final double t = Double.parseDouble(value);
+							p.exposureTime = new Double(t / 1000);
+						}
+						else if (key.equals("ElapsedTime-ms")) {
+							final double t = Double.parseDouble(value);
+							stamps.add(new Double(t / 1000));
+						}
+						else if (key.equals("Core-Camera")) p.cameraRef = value;
+						else if (key.equals(p.cameraRef + "-Binning")) {
+							if (value.contains("x")) p.binning = value;
+							else p.binning = value + "x" + value;
+						}
+						else if (key.equals(p.cameraRef + "-CameraID")) p.detectorID =
+							value;
+						else if (key.equals(p.cameraRef + "-CameraName")) {
+							p.detectorModel = value;
+						}
+						else if (key.equals(p.cameraRef + "-Gain")) {
+							try {
+								p.gain = (int) Double.parseDouble(value);
+							} catch (NumberFormatException e) {
+								p.gain = -1;
+							}
+						}
+						else if (key.equals(p.cameraRef + "-Name")) {
+							p.detectorManufacturer = value;
+						}
+						else if (key.equals(p.cameraRef + "-Temperature")) {
+							p.temperature = Double.parseDouble(value);
+						}
+						else if (key.equals(p.cameraRef + "-CCDMode")) {
+							p.cameraMode = value;
+						}
+						else if (key.equals(p.cameraRef + "-Exposure")) {
+							final double t = Double.parseDouble(value);
+							p.exposureTime = new Double(t / 1000);
+						}
+						else if (key.startsWith("DAC-") && key.endsWith("-Volts")) {
+							p.voltage.add(new Double(value));
+						}
+						else if (key.equals("FileName")) {
+							final Location file = metadataFile.sibling(value);
+							p.locationMap.put(new Index(slice), file);
+							if (p.baseTiff == null) {
+								p.baseTiff = file;
+							}
+						}
+						else if (key.equals("Width") && Integer.parseInt(value) > 0) {
+								ms.setAxisLength(Axes.X, Integer.parseInt(value));
+						}
+						else if (key.equals("Height") && Integer.parseInt(value) > 0) {
+								ms.setAxisLength(Axes.Y, Integer.parseInt(value));
+						}
+
+						token = st.nextToken().trim();
+					}
+					
+					meta.getTable().put("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
 				}
 			}
 
@@ -739,19 +1108,11 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		/**
 		 * Populate the list of TIFF files using the given file name as a pattern.
 		 */
-		private void buildTIFFList(final Metadata meta, final int posIndex,
+		private void buildTIFFListMV1(final Metadata meta, final int posIndex,
 			final Location baseTiff) throws IOException
 		{
 			log().info("Building list of TIFFs");
 			final Position p = meta.getPositions().get(posIndex);
-			/*
-			String prefix = "";
-			if (baseTiff.contains(File.separator)) {
-				prefix =
-					baseTiff.substring(0, baseTiff.lastIndexOf(File.separator) + 1);
-				baseTiff = baseTiff.substring(baseTiff.lastIndexOf(File.separator) + 1);
-			}
-			*/
 			
 			final String[] blocks = baseTiff.getName().split("_");
 			final StringBuilder filename = new StringBuilder();
@@ -759,16 +1120,6 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 				for (int c = 0; c < meta.get(posIndex).getAxisLength(Axes.CHANNEL); c++)
 				{
 					for (int z = 0; z < meta.get(posIndex).getAxisLength(Axes.Z); z++) {
-						// file names are of format:
-						// img_<Z>_<channel name>_<T>.tif
-						/*
-						filename.append(prefix);
-						if (!prefix.endsWith(File.separator) &&
-							!blocks[0].startsWith(File.separator))
-						{
-							filename.append(File.separator);
-						}
-						*/
 						filename.append(blocks[0]);
 						filename.append("_");
 
@@ -781,9 +1132,6 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							filename.append("_");
 	
 							String channel = p.channels[c];
-							//if (channel.contains("-")) {
-							//	channel = channel.substring(0, channel.indexOf("-"));
-							//}
 							filename.append(channel);
 							filename.append("_");
 	
@@ -815,6 +1163,63 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							filename.append(z);
 							filename.append(".tif");
 						}
+
+						p.tiffs.add(p.metadataFile.sibling(filename.toString()));
+						filename.delete(0, filename.length());
+					}
+				} 
+			}
+		}
+		
+		/**
+		 * Populate the list of TIFF files using the given file name as a pattern.
+		 */
+		private void buildTIFFListMV2(final Metadata meta, final int posIndex,
+			final Location baseTiff) throws IOException
+		{
+			log().info("Building list of TIFFs");
+			final Position p = meta.getPositions().get(posIndex);
+			
+			final String[] blocks = baseTiff.getName().split("_");
+			final StringBuilder filename = new StringBuilder();
+			for (int t = 0; t < meta.get(posIndex).getAxisLength(Axes.TIME); t++) {
+				for (int c = 0; c < meta.get(posIndex).getAxisLength(Axes.CHANNEL); c++)
+				{
+					for (int z = 0; z < meta.get(posIndex).getAxisLength(Axes.Z); z++) {
+						filename.append(blocks[0]);
+						filename.append("_");
+
+						filename.append("channel");
+						int zeros = 3 - String.valueOf(c).length();
+						for (int q = 0; q < zeros; q++) {
+							filename.append("0");
+						}
+						filename.append(c);
+						filename.append("_");
+
+						filename.append("position");
+						zeros = 3 - String.valueOf(p.positionIndex).length();
+						for (int q = 0; q < zeros; q++) {
+							filename.append("0");
+						}
+						filename.append(p.positionIndex);
+						filename.append("_");
+						
+						filename.append("time");
+						zeros = 9 - String.valueOf(t).length();
+						for (int q = 0; q < zeros; q++) {
+							filename.append("0");
+						}
+						filename.append(t);
+						filename.append("_");
+						
+						filename.append("z");
+						zeros = 3 - String.valueOf(z).length();
+						for (int q = 0; q < zeros; q++) {
+							filename.append("0");
+						}
+						filename.append(z);
+						filename.append(".tif");
 
 						p.tiffs.add(p.metadataFile.sibling(filename.toString()));
 						filename.delete(0, filename.length());
@@ -1070,7 +1475,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			final long[] zct = FormatTools.rasterToPosition(imageIndex, planeIndex,
 					meta, Index.expectedAxes);
 
-				return "MMAllFileKey-" + imageIndex + "-" + zct[0] + "-" + zct[1] + "-" + zct[2];
+				return "MPlane-" + imageIndex + "-" + zct[0] + "-" + zct[1] + "-" + zct[2];
 		}
 		
 		public NonNegativeInteger getTheZ(final Metadata meta, final int imageIndex,
