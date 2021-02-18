@@ -503,43 +503,10 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 
 					buildTIFFListMV2(meta, posIndex, p.metadataFile.sibling("img"));
 					// build list of TIFF files
-					//buildTIFFList(meta, posIndex, parent + File.separator + p.baseTiff);
 					
 					if (p.tiffs.size() == 0) {
 						log().info("Failed to generate tif file names");
 					}
-					/*
-					if (p.tiffs.isEmpty()) {
-						final List<String> uniqueZ = new ArrayList<>();
-						final List<String> uniqueC = new ArrayList<>();
-						final List<String> uniqueT = new ArrayList<>();
-
-						final Set<BrowsableLocation> fSet = parent.children();
-						final Location[] files = fSet.toArray(new Location[fSet.size()]);
-						Arrays.sort(files);
-						for (final Location file : files) {
-							final String name = file.getName();
-							if (FormatTools.checkSuffix(name, "tif") || FormatTools.checkSuffix(
-								name, "tiff"))
-							{
-								final String[] blocks = name.split("_");
-								if (!uniqueT.contains(blocks[3])) uniqueT.add(blocks[3]);
-								if (!uniqueC.contains(blocks[1])) uniqueC.add(blocks[1]);
-								if (!uniqueZ.contains(blocks[4])) uniqueZ.add(blocks[4]);
-
-								p.tiffs.add(file);
-							}
-						}
-
-						ms.setAxisLength(Axes.Z, uniqueZ.size());
-						ms.setAxisLength(Axes.CHANNEL, uniqueC.size());
-						ms.setAxisLength(Axes.TIME, uniqueT.size());
-
-						if (p.tiffs.isEmpty()) {
-							throw new FormatException("Could not find TIFF files.");
-						}
-					}
-					*/
 				}
 				catch (final IOException e) {
 					throw new FormatException(

@@ -178,8 +178,9 @@ public class MarsMicromanagerTranslator {
 
 				int nextStamp = 0;
 				for (int q = 0; q < meta.get(i).getPlaneCount(); q++) {
-					store.setPlaneExposureTime(new Time(p.exposureTime, UNITS.SECOND), i,
-						q);
+					if (p.exposureTime != null)
+						store.setPlaneExposureTime(new Time(p.exposureTime, UNITS.SECOND), i,
+							q);
 
 					final Location tiff = positions.get(i).getLocation(meta, i, q);
 					if (tiff != null && dataHandleService.exists(tiff) &&
