@@ -890,9 +890,6 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 								throw new FormatException("Unknown type: " + type);
 						}
 					}
-					else if (key.equals("PositionIndex")) {
-						p.positionIndex = Integer.parseInt(value);
-					}
 					else if (key.equals("IntendedDimensions")) {
 						while (!st.nextToken().trim().equals("},")) { }
 					}
@@ -1053,6 +1050,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						else if (key.equals("Height") && Integer.parseInt(value) > 0) {
 								ms.setAxisLength(Axes.Y, Integer.parseInt(value));
 						}
+						else if (key.equals("PositionIndex")) {
+							p.positionIndex = Integer.parseInt(value);
+						}
 
 						token = st.nextToken().trim();
 					}
@@ -1066,10 +1066,10 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 
 			// look for the optional companion XML file
 
-			p.xmlFile = p.metadataFile.sibling(XML);
-			if (dataHandleService.exists(p.xmlFile)) {
-				parseXMLFile(meta, posIndex);
-			}
+			//p.xmlFile = p.metadataFile.sibling(XML);
+			//if (dataHandleService.exists(p.xmlFile)) {
+			//	parseXMLFile(meta, posIndex);
+			//}
 		}
 
 		/**
