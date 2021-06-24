@@ -980,6 +980,40 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 								
 								planeMetaTable.put(key, value);
 								
+								if (key.equals("Core-Camera")) p.cameraRef = value;
+								else if (key.equals(p.cameraRef + "-Binning")) {
+									if (value.contains("x")) p.binning = value;
+									else p.binning = value + "x" + value;
+								}
+								else if (key.equals(p.cameraRef + "-CameraID")) p.detectorID =
+									value;
+								else if (key.equals(p.cameraRef + "-CameraName")) {
+									p.detectorModel = value;
+								}
+								else if (key.equals(p.cameraRef + "-Gain")) {
+									try {
+										p.gain = (int) Double.parseDouble(value);
+									} catch (NumberFormatException e) {
+										p.gain = -1;
+									}
+								}
+								else if (key.equals(p.cameraRef + "-Name")) {
+									p.detectorManufacturer = value;
+								}
+								else if (key.equals(p.cameraRef + "-Temperature")) {
+									p.temperature = Double.parseDouble(value);
+								}
+								else if (key.equals(p.cameraRef + "-CCDMode")) {
+									p.cameraMode = value;
+								}
+								else if (key.equals(p.cameraRef + "-Exposure")) {
+									final double t = Double.parseDouble(value);
+									p.exposureTime = new Double(t / 1000);
+								}
+								else if (key.startsWith("DAC-") && key.endsWith("-Volts")) {
+									p.voltage.add(new Double(value));
+								}
+								
 								//Skip past closing bracket
 								st.nextToken();
 								
@@ -1035,40 +1069,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						else if (key.equals("ElapsedTime-ms")) {
 							final double t = Double.parseDouble(value);
 							stamps.add(new Double(t / 1000));
-						}
-						else if (key.equals("Core-Camera")) p.cameraRef = value;
-						else if (key.equals(p.cameraRef + "-Binning")) {
-							if (value.contains("x")) p.binning = value;
-							else p.binning = value + "x" + value;
-						}
-						else if (key.equals(p.cameraRef + "-CameraID")) p.detectorID =
-							value;
-						else if (key.equals(p.cameraRef + "-CameraName")) {
-							p.detectorModel = value;
-						}
-						else if (key.equals(p.cameraRef + "-Gain")) {
-							try {
-								p.gain = (int) Double.parseDouble(value);
-							} catch (NumberFormatException e) {
-								p.gain = -1;
-							}
-						}
-						else if (key.equals(p.cameraRef + "-Name")) {
-							p.detectorManufacturer = value;
-						}
-						else if (key.equals(p.cameraRef + "-Temperature")) {
-							p.temperature = Double.parseDouble(value);
-						}
-						else if (key.equals(p.cameraRef + "-CCDMode")) {
-							p.cameraMode = value;
-						}
-						else if (key.equals(p.cameraRef + "-Exposure")) {
-							final double t = Double.parseDouble(value);
-							p.exposureTime = new Double(t / 1000);
-						}
-						else if (key.startsWith("DAC-") && key.endsWith("-Volts")) {
-							p.voltage.add(new Double(value));
-						}
+						} 
 						else if (key.equals("FileName")) {
 							final Location file = metadataFile.sibling(value);
 							p.locationMap.put(new Index(slice), file);
