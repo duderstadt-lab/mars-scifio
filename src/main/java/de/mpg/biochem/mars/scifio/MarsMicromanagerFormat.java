@@ -583,6 +583,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					else if (key.equals("Frames")) {
 						ms.setAxisLength(Axes.TIME, Integer.parseInt(value));
 					}
+					else if (key.equals("Prefix")) {
+						ms.setName(value);
+					}
 					else if (key.equals("Slices")) {
 						ms.setAxisLength(Axes.Z, Integer.parseInt(value));
 					}
@@ -770,6 +773,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 
 			p.timestamps = stamps.toArray(new Double[stamps.size()]);
 			Arrays.sort(p.timestamps);
+			
+			ms.setName(ms.getName() + " (Pos" + p.positionIndex + ")");
 
 			// look for the optional companion XML file
 
@@ -847,6 +852,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					}
 					else if (key.equals("Frames")) {
 						ms.setAxisLength(Axes.TIME, Integer.parseInt(value));
+					}
+					else if (key.equals("Prefix")) {
+						ms.setName(value);
 					}
 					else if (key.equals("Slices")) {
 						ms.setAxisLength(Axes.Z, Integer.parseInt(value));
@@ -936,6 +944,10 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					int channelIndex = imgFileString.indexOf("_channel") + 8;
 					int nextUnderscore = imgFileString.indexOf("_", channelIndex);
 					slice[1] = Integer.parseInt(imgFileString.substring(channelIndex, nextUnderscore));
+					
+					int positionStringIndex = imgFileString.indexOf("_position") + 9;
+					nextUnderscore = imgFileString.indexOf("_", positionStringIndex);
+					int blockPositionIndex = Integer.parseInt(imgFileString.substring(positionStringIndex, nextUnderscore));
 					
 					int timeIndex = imgFileString.indexOf("_time") + 5;
 					nextUnderscore = imgFileString.indexOf("_", timeIndex);
@@ -1053,6 +1065,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						else if (key.equals("PositionIndex")) {
 							p.positionIndex = Integer.parseInt(value);
 						}
+						else if (key.equals("UUID") && p.UUID == null) {
+							p.UUID = value;
+						}
 
 						token = st.nextToken().trim();
 					}
@@ -1063,6 +1078,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 
 			p.timestamps = stamps.toArray(new Double[stamps.size()]);
 			Arrays.sort(p.timestamps);
+			
+			ms.setName(ms.getName() + " (Pos" + p.positionIndex + ")");
 
 			// look for the optional companion XML file
 
