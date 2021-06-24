@@ -965,8 +965,28 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					HashMap<String, String> planeMetaTable = new HashMap<String, String>();
 					
 					while (!token.startsWith("}") || nestedCount > 0) {
-
-						if (token.trim().endsWith("{")) {
+						if (token.equals("\"UserData\": {")) {
+							token = st.nextToken().trim();
+							while (!token.startsWith("}")) {
+								key = token.substring(1, token.indexOf(":") - 1);
+								//skip past type token
+								st.nextToken();
+								
+								//get scalar
+								token = st.nextToken().trim();
+								value = token.substring(token.indexOf(":") + 3, token.length() - 1);
+								
+								meta.getTable().put(key, value);
+								
+								planeMetaTable.put(key, value);
+								
+								//Skip past closing bracket
+								st.nextToken();
+								
+								token = st.nextToken().trim();
+							}
+							token = st.nextToken().trim();
+						} else if (token.trim().endsWith("{")) {
 							nestedCount++;
 							token = st.nextToken().trim();
 							continue;
