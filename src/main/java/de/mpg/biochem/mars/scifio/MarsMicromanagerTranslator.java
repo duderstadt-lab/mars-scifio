@@ -137,10 +137,11 @@ public class MarsMicromanagerTranslator {
 				if (p.UUID != null)
 					store.setUUID(p.UUID);
 
-				if (positions.size() > 1) {
-					final Location parent = p.metadataFile.parent();
-					store.setImageName(parent.getName(), i);
-				}
+				//if (positions.size() > 1) {
+				//	final Location parent = p.metadataFile.parent();
+				String imageName = (meta.get(i) != null) ? meta.get(i).getName() : p.metadataFile.parent().getName();	
+				store.setImageName(imageName, i);
+				//}
 
 				store.setImageDescription(p.comment, i);
 
