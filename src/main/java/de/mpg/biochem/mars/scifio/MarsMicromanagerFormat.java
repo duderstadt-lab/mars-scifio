@@ -583,9 +583,6 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					else if (key.equals("Frames")) {
 						ms.setAxisLength(Axes.TIME, Integer.parseInt(value));
 					}
-					else if (key.equals("Prefix")) {
-						ms.setName(value);
-					}
 					else if (key.equals("Slices")) {
 						ms.setAxisLength(Axes.Z, Integer.parseInt(value));
 					}
@@ -774,7 +771,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			p.timestamps = stamps.toArray(new Double[stamps.size()]);
 			Arrays.sort(p.timestamps);
 			
-			ms.setName(ms.getName() + " (Pos" + p.positionIndex + ")");
+			ms.setName(p.metadataFile.parent().parent().getName() + " (Pos" + p.positionIndex + ")");
 
 			// look for the optional companion XML file
 
