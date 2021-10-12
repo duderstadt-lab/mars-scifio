@@ -184,32 +184,34 @@ public class MarsMicromanagerTranslator {
 							q);
 
 					final Location tiff = positions.get(i).getLocation(meta, i, q);
-					if (tiff != null && dataHandleService.exists(tiff) &&
-						nextStamp < p.timestamps.length)
-					{
+					
+					//if (tiff != null && dataHandleService.exists(tiff) &&
+					//	nextStamp < p.timestamps.length)
+					//{
+					if (nextStamp < p.timestamps.length)
 						store.setPlaneDeltaT(new Time(p.timestamps[nextStamp++],
-							UNITS.SECOND), i, q);
+								UNITS.SECOND), i, q);
+					
+					store.setPlaneTheC(p.getTheC(meta, i, q), i, q);
+					store.setPlaneTheZ(p.getTheZ(meta, i, q), i, q);
+					store.setPlaneTheT(p.getTheT(meta, i, q), i, q);
+					
+					HashMap<String, String> planeMetaTable = (HashMap<String, String>)meta.getTable().get(p.getPlaneMapKey(meta, i, q));
+					
+					ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
+					for (String planeParameterKey : planeMetaTable.keySet()) 
+						planeParameterList.add(new MapPair(planeParameterKey, planeMetaTable.get(planeParameterKey))); 
+					
+					store.setMapAnnotationValue(planeParameterList, q);
+					store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
+					store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
+					//} else {
+					//	ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>(); 
 						
-						store.setPlaneTheC(p.getTheC(meta, i, q), i, q);
-						store.setPlaneTheZ(p.getTheZ(meta, i, q), i, q);
-						store.setPlaneTheT(p.getTheT(meta, i, q), i, q);
-						
-						HashMap<String, String> planeMetaTable = (HashMap<String, String>)meta.getTable().get(p.getPlaneMapKey(meta, i, q));
-						
-						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
-						for (String planeParameterKey : planeMetaTable.keySet()) 
-							planeParameterList.add(new MapPair(planeParameterKey, planeMetaTable.get(planeParameterKey))); 
-						
-						store.setMapAnnotationValue(planeParameterList, q);
-						store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
-						store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
-					} else {
-						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>(); 
-						
-						store.setMapAnnotationValue(planeParameterList, q);
-						store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
-						store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
-					}
+					//	store.setMapAnnotationValue(planeParameterList, q);
+					//	store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
+					//	store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
+					//}
 				}
 
 				final String serialNumber = p.detectorID;
