@@ -1,8 +1,8 @@
 /*
  * #%L
- * SCIFIO library for reading and converting scientific file formats.
+ * SCIFIO adapted Mars Micromanager format and translator.
  * %%
- * Copyright (C) 2011 - 2017 SCIFIO developers.
+ * Copyright (C) 2020 - 2021 Karl Duderstadt
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
