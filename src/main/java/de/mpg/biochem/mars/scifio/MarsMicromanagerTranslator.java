@@ -184,33 +184,34 @@ public class MarsMicromanagerTranslator {
 
 					final Location tiff = positions.get(i).getLocation(meta, i, q);
 					
-					//if (tiff != null && dataHandleService.exists(tiff) &&
-					//	nextStamp < p.timestamps.length)
-					//{
-					if (nextStamp < p.timestamps.length)
-						store.setPlaneDeltaT(new Time(p.timestamps[nextStamp++],
-								UNITS.SECOND), i, q);
-					
-					store.setPlaneTheC(p.getTheC(meta, i, q), i, q);
-					store.setPlaneTheZ(p.getTheZ(meta, i, q), i, q);
-					store.setPlaneTheT(p.getTheT(meta, i, q), i, q);
-					
-					HashMap<String, String> planeMetaTable = (HashMap<String, String>)meta.getTable().get(p.getPlaneMapKey(meta, i, q));
-					
-					ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
-					for (String planeParameterKey : planeMetaTable.keySet()) 
-						planeParameterList.add(new MapPair(planeParameterKey, planeMetaTable.get(planeParameterKey))); 
-					
-					store.setMapAnnotationValue(planeParameterList, q);
-					store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
-					store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
-					//} else {
-					//	ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>(); 
+					//Check if the tiff file exists. If a sparse collection was performed some planes
+					//may not have been collected. In that case, add empty placeholder plane data
+					if (tiff != null && dataHandleService.exists(tiff))
+					{
+						if (nextStamp < p.timestamps.length)
+							store.setPlaneDeltaT(new Time(p.timestamps[nextStamp++],
+									UNITS.SECOND), i, q);
 						
-					//	store.setMapAnnotationValue(planeParameterList, q);
-					//	store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
-					//	store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
-					//}
+						store.setPlaneTheC(p.getTheC(meta, i, q), i, q);
+						store.setPlaneTheZ(p.getTheZ(meta, i, q), i, q);
+						store.setPlaneTheT(p.getTheT(meta, i, q), i, q);
+						
+						HashMap<String, String> planeMetaTable = (HashMap<String, String>)meta.getTable().get(p.getPlaneMapKey(meta, i, q));
+						
+						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
+						for (String planeParameterKey : planeMetaTable.keySet()) 
+							planeParameterList.add(new MapPair(planeParameterKey, planeMetaTable.get(planeParameterKey))); 
+						
+						store.setMapAnnotationValue(planeParameterList, q);
+						store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
+						store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
+					} else {
+						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>(); 
+						
+						store.setMapAnnotationValue(planeParameterList, q);
+						store.setMapAnnotationID("MPlane-" + i + "-" + q, q);
+						store.setPlaneAnnotationRef("MPlane-" + i + "-" + q, i, q, 0);
+					}
 				}
 
 				final String serialNumber = p.detectorID;
