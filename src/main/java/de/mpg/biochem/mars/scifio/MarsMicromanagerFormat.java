@@ -568,7 +568,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					value = value.replaceAll("\"", "");
 					if (value.endsWith(",")) value =
 						value.substring(0, value.length() - 1);
-					meta.getTable().put(key, value);
+					if (!token.startsWith("\"FrameKey"))
+						meta.getTable().put(key, value);
 					if (key.equals("UUID")) {
 						p.UUID = value;
 					} else if (key.equals("Channels")) {
@@ -708,7 +709,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							}
 						}
 
-						meta.getTable().put(key, value);
+						//meta.getTable().put(key, value);
 						
 						planeMetaTable.put(key, value);
 
@@ -764,7 +765,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						token = st.nextToken().trim();
 					}
 					
-					meta.getTable().put("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
+					//meta.getTable().put("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
+					p.putPlaneMap("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
 				}
 			}
 
@@ -834,7 +836,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					value = value.replaceAll("\"", "");
 					if (value.endsWith(",")) value =
 						value.substring(0, value.length() - 1);
-					meta.getTable().put(key, value);
+					
+					if (!token.startsWith("\"Coords-") && !token.startsWith("\"Metadata-"))
+						meta.getTable().put(key, value);
 					
 					if (key.equals("UUID")) {
 						p.UUID = value;
@@ -973,7 +977,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 								token = st.nextToken().trim();
 								value = token.substring(token.indexOf(":") + 3, token.length() - 1);
 								
-								meta.getTable().put(key, value);
+								//meta.getTable().put(key, value);
 								
 								planeMetaTable.put(key, value);
 								
@@ -1055,7 +1059,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							}
 						}
 
-						meta.getTable().put(key, value);
+						//meta.getTable().put(key, value);
 						
 						planeMetaTable.put(key, value);
 
@@ -1090,7 +1094,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						token = st.nextToken().trim();
 					}
 					
-					meta.getTable().put("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
+					//meta.getTable().put("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
+					p.putPlaneMap("MPlane-" + posIndex + "-" + slice[0] + "-" + slice[1] + "-" + slice[2], planeMetaTable);
 				}
 			}
 
@@ -1417,6 +1422,8 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		public List<Location> tiffs;
 
 		public Map<Index, Location> locationMap = new HashMap<>();
+		
+		public Map<String, Map<String, String>> planeToMetaTable = new HashMap<String, Map<String, String>>();
 
 		public BrowsableLocation metadataFile;
 
@@ -1471,13 +1478,18 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			}
 		
 		//DROP-IN
-		public String getPlaneMapKey(final Metadata meta, final int imageIndex,
+		public Map<String, String> getPlaneMap(final Metadata meta, final int imageIndex,
 			final long planeIndex)
 		{
 			final long[] zct = FormatTools.rasterToPosition(imageIndex, planeIndex,
 					meta, Index.expectedAxes);
-
-				return "MPlane-" + imageIndex + "-" + zct[0] + "-" + zct[1] + "-" + zct[2];
+				
+			return planeToMetaTable.get("MPlane-" + imageIndex + "-" + zct[0] + "-" + zct[1] + "-" + zct[2]);
+		}
+		
+		public void putPlaneMap(final String key, final Map<String, String> map)
+		{
+			planeToMetaTable.put(key, map);
 		}
 		
 		public NonNegativeInteger getTheZ(final Metadata meta, final int imageIndex,

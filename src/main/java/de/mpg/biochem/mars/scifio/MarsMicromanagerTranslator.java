@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.scijava.Priority;
 import org.scijava.io.handle.DataHandleService;
@@ -196,7 +197,7 @@ public class MarsMicromanagerTranslator {
 						store.setPlaneTheZ(p.getTheZ(meta, i, q), i, q);
 						store.setPlaneTheT(p.getTheT(meta, i, q), i, q);
 						
-						HashMap<String, String> planeMetaTable = (HashMap<String, String>)meta.getTable().get(p.getPlaneMapKey(meta, i, q));
+						Map<String, String> planeMetaTable = p.getPlaneMap(meta, i, q);
 						
 						ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
 						for (String planeParameterKey : planeMetaTable.keySet()) 
