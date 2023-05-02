@@ -11,7 +11,7 @@
 
 	<groupId>de.mpg.biochem</groupId>
 	<artifactId>mars-scifio</artifactId>
-	<version>0.5.3-SNAPSHOT</version>
+	<version>0.5.3</version>
 
 	<name>mars-scifio</name>
 	<description>SCIFIO adapted Mars Micromanager format and translator.</description>
@@ -61,7 +61,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/duderstadt-lab/mars-scifio</connection>
 		<developerConnection>scm:git:git@github.com:duderstadt-lab/mars-scifio</developerConnection>
-		<tag>HEAD</tag>
+		<tag>mars-scifio-0.5.3</tag>
 		<url>https://github.com/duderstadt-lab/mars-scifio</url>
 	</scm>
 	<issueManagement>
