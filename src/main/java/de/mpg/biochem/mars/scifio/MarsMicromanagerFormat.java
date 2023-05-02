@@ -56,12 +56,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.imagej.axis.Axes;
 import net.imagej.axis.CalibratedAxis;
 import net.imagej.axis.DefaultLinearAxis;
 import net.imglib2.Interval;
-import ome.xml.model.primitives.NonNegativeInteger;
 
 import org.scijava.Priority;
 import org.scijava.io.handle.DataHandle;
@@ -74,8 +75,7 @@ import org.scijava.prefs.PrefService;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import ome.xml.model.primitives.NonNegativeInteger;
 
 /**
  * MicromanagerReader is the file format reader for Micro-Manager files.
@@ -623,6 +623,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							case 1:
 								ms.setPixelType(FormatTools.UINT16);
 								break;
+							case 2:
+								ms.setPixelType(FormatTools.FLOAT);
+								break;
 							default:
 								throw new FormatException("Unknown type: " + type);
 						}
@@ -894,6 +897,9 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 								break;
 							case 1:
 								ms.setPixelType(FormatTools.UINT16);
+								break;
+							case 2:
+								ms.setPixelType(FormatTools.FLOAT);
 								break;
 							default:
 								throw new FormatException("Unknown type: " + type);
