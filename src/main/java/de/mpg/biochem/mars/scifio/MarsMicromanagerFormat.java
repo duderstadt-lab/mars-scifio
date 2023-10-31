@@ -271,7 +271,14 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 		// -- MicromanagerParser API methods --
 
 		public void populateMetadata(final String[] jsonData,
-			final Metadata source, final io.scif.Metadata dest)
+									 final Metadata source, final io.scif.Metadata dest)
+				throws FormatException, IOException
+		{
+			populateMetadata(jsonData, source, dest, true);
+		}
+
+		public void populateMetadata(final String[] jsonData,
+			final Metadata source, final io.scif.Metadata dest, final boolean buildTIFFList)
 			throws FormatException, IOException
 		{
 			source.createImageMetadata(jsonData.length);
@@ -284,40 +291,14 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 				int[] version = getMicroManagerVersion(jsonData[pos]);
 	        	if (version[0] == 1 && version[1] >= 4) {
 	        		parsePositionMV1(jsonData[pos], source, pos);
-					buildTIFFListMV1(source, pos);
+					if (buildTIFFList) buildTIFFListMV1(source, pos);
 	        	} else if (version[0] == 2) {
 	        		parsePositionMV2(jsonData[pos], source, pos);
-					buildTIFFListMV2(source, pos);
+					if (buildTIFFList) buildTIFFListMV2(source, pos);
 	        	}
 			}
 			
 			translatorService.translate(source, dest, true);
-		}
-
-		public void populateMetadata(final String jsonData, final Metadata metadata)
-				throws FormatException, IOException
-		{
-			final String[] str = new String[1];
-			str[0] = jsonData;
-			populateMetadata(str, metadata);
-		}
-
-		public void populateMetadata(final String[] jsonData, final Metadata metadata)
-				throws FormatException, IOException
-		{
-			metadata.createImageMetadata(jsonData.length);
-			final List<Position> positions = new ArrayList<>();
-			for (int pos = 0; pos < jsonData.length; pos++) {
-				final Position p = new Position();
-				positions.add(p);
-
-				int[] version = getMicroManagerVersion(jsonData[pos]);
-				if (version[0] == 1 && version[1] >= 4) {
-					parsePositionMV1(jsonData[pos], metadata, pos);
-				} else if (version[0] == 2) {
-					parsePositionMV2(jsonData[pos], metadata, pos);
-				}
-			}
 		}
 
 		// -- Parser API methods --
