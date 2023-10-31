@@ -294,6 +294,32 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			translatorService.translate(source, dest, true);
 		}
 
+		public void populateMetadata(final String jsonData, final Metadata metadata)
+				throws FormatException, IOException
+		{
+			final String[] str = new String[1];
+			str[0] = jsonData;
+			populateMetadata(str, metadata);
+		}
+
+		public void populateMetadata(final String[] jsonData, final Metadata metadata)
+				throws FormatException, IOException
+		{
+			metadata.createImageMetadata(jsonData.length);
+			final List<Position> positions = new ArrayList<>();
+			for (int pos = 0; pos < jsonData.length; pos++) {
+				final Position p = new Position();
+				positions.add(p);
+
+				int[] version = getMicroManagerVersion(jsonData[pos]);
+				if (version[0] == 1 && version[1] >= 4) {
+					parsePositionMV1(jsonData[pos], metadata, pos);
+				} else if (version[0] == 2) {
+					parsePositionMV2(jsonData[pos], metadata, pos);
+				}
+			}
+		}
+
 		// -- Parser API methods --
 
 		@Override
