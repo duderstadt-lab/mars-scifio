@@ -606,12 +606,11 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					else if (key.equals("Comment")) {
 						p.comment = value;
 					}
-					else if (key.equals("FileName")) {
+					else if (key.equals("FileName") && metadataFile != null) {
 						final Location file = metadataFile.sibling(value);
 						p.locationMap.put(new Index(slice), file);
 						if (p.baseTiff == null) {
 							p.baseTiff = file;
-							System.out.println("p.baseTiff " + p.baseTiff);
 						}
 					}
 					else if (key.equals("Width")) {
@@ -764,7 +763,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						else if (key.startsWith("DAC-") && key.endsWith("-Volts")) {
 							p.voltage.add(new Double(value));
 						}
-						else if (key.equals("FileName")) {
+						else if (key.equals("FileName") && metadataFile != null) {
 							final Location file = metadataFile.sibling(value);
 							p.locationMap.put(new Index(slice), file);
 							if (p.baseTiff == null) {
@@ -782,15 +781,15 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 
 			p.timestamps = stamps.toArray(new Double[stamps.size()]);
 			Arrays.sort(p.timestamps);
-			
-			ms.setName(p.metadataFile.parent().parent().getName() + " (Pos" + p.positionIndex + ")");
+
+			ms.setName(ms.getName() + " (Pos" + p.positionIndex + ")");
 
 			// look for the optional companion XML file
 
-			p.xmlFile = p.metadataFile.sibling(XML);
-			if (dataHandleService.exists(p.xmlFile)) {
-				parseXMLFile(meta, posIndex);
-			}
+			//p.xmlFile = p.metadataFile.sibling(XML);
+			//if (dataHandleService.exists(p.xmlFile)) {
+			//	parseXMLFile(meta, posIndex);
+			//}
 		}
 		
 		private void parsePositionMV2(final String jsonData, final Metadata meta,
@@ -882,7 +881,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 					else if (key.equals("Comment")) {
 						p.comment = value;
 					}
-					else if (key.equals("FileName")) {
+					else if (key.equals("FileName") && metadataFile != null) {
 						final Location file = metadataFile.sibling(value);
 						p.locationMap.put(new Index(slice), file);
 						if (p.baseTiff == null) {
@@ -1084,7 +1083,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 							final double t = Double.parseDouble(value);
 							stamps.add(new Double(t / 1000));
 						} 
-						else if (key.equals("FileName")) {
+						else if (key.equals("FileName") && metadataFile != null) {
 							final Location file = metadataFile.sibling(value);
 							p.locationMap.put(new Index(slice), file);
 							if (p.baseTiff == null) {
@@ -1118,7 +1117,6 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			ms.setName(ms.getName() + " (Pos" + p.positionIndex + ")");
 
 			// look for the optional companion XML file
-
 			//p.xmlFile = p.metadataFile.sibling(XML);
 			//if (dataHandleService.exists(p.xmlFile)) {
 			//	parseXMLFile(meta, posIndex);
@@ -1487,6 +1485,7 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 						}
 					}
 				}
+				if (tiffs == null) return null;
 				return locationMap.size() == 0 ? tiffs.get((int) planeIndex) : null;
 			}
 		
