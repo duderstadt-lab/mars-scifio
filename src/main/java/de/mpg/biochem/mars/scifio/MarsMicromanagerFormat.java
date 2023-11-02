@@ -1490,6 +1490,15 @@ public class MarsMicromanagerFormat extends AbstractFormat {
 			}
 		
 		//DROP-IN
+		public boolean hasPlane(final Metadata meta, final int imageIndex,
+											   final long planeIndex)
+		{
+			final long[] zct = FormatTools.rasterToPosition(imageIndex, planeIndex,
+					meta, Index.expectedAxes);
+
+			return planeToMetaTable.containsKey("MPlane-" + imageIndex + "-" + zct[0] + "-" + zct[1] + "-" + zct[2]);
+		}
+
 		public Map<String, String> getPlaneMap(final Metadata meta, final int imageIndex,
 			final long planeIndex)
 		{

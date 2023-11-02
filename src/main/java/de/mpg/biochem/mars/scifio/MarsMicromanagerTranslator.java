@@ -183,19 +183,11 @@ public class MarsMicromanagerTranslator {
 						store.setPlaneExposureTime(new Time(p.exposureTime, UNITS.SECOND), i,
 							q);
 
-					boolean fullPlane = true;
-					if (positions.get(i).tiffs != null) {
-						//Check if the tiff file exists. If a sparse collection was performed some planes
-						//may not have been collected. In that case, add empty placeholder plane data
-						final Location tiff = positions.get(i).getLocation(meta, i, q);
-						if (tiff != null && dataHandleService.exists(tiff)) fullPlane = true;
-						else fullPlane = false;
-					}
-					//If tiffs is null, there was no access to the original files when processing the metadata.txt
-					//In this case, full plane information is included for all possible planes.
-
 					ArrayList<MapPair> planeParameterList = new ArrayList<MapPair>();
-					if (fullPlane) {
+
+					//Check if the plane exists. If a sparse collection was performed some planes
+					//may not have been collected.
+					if (positions.get(i).hasPlane(meta, i, q)) {
 						if (nextStamp < p.timestamps.length)
 							store.setPlaneDeltaT(new Time(p.timestamps[nextStamp++],
 									UNITS.SECOND), i, q);
